@@ -1,69 +1,29 @@
-const colors = require("colors/safe");
-let n = Number(process.argv[2])
+const fs = require('fs');
+const readStream = new fs.ReadStream('./access.log', 'utf8');
+const { Transform } = require('stream');
+let fileWs_89 = fs.createWriteStream("89.123.1.41_requests.log");
+let fileWs_34 = fs.createWriteStream("34.48.240.111_requests.log");
+let find_89 = /^89.123.1.41 *(.+)/gm;
+let find_34 = /^34.48.240.111 *(.+)/gm;
 
-let num = []
-let gnum = []
-let ynum = []
-let rnum = []
-
-if (n || n === 0) {
-
-    if (n === 0 || n === 1) {
-        console.log(colors.red("Простых чисел в диапазоне нет"));
-
-    } else {
-
-        for (let i = 2; i <= n; i++) {
-            let flag = 1;
-            if (i > 2 && i % 2 !== 0)
-            {
-                for (let j = 3; j*j <= i ; j=j+2)
-                {
-                    if (i%j===0)
-                    {
-                        flag=0;
-                        break;
-                    }
-                }
-            }
-            else if (i !== 2) flag = 0;
-            if (flag===1) {
-                num.push(i);
-            }
-
-        }
+const transformStreamFind_89 = new Transform({
+    transform(chunk, encoding, callback) {
+        const transformedChunk = chunk.toString().match(find_89).toString()
+            .replaceAll(',', '\n')
+        this.push(transformedChunk)
+       callback();
     }
+});
 
-
-}
-else {
-    console.log("Вы ввели не число");
-   }
-
-for(let i=0; i<num.length; i+=3){
-    gnum.push(num[i])
-}
-for(let i=1; i<num.length; i+=3){
-    ynum.push(num[i])
-}
-for(let i=2; i<num.length; i+=3){
-    rnum.push(num[i])
-}
-
-for (i =0; i<num.length; i++) {
-    if(gnum[i]) {
-        console.log(colors.green(gnum[i]))
+const transformStreamFind_34 = new Transform({
+    transform(chunk, encoding, callback) {
+        const transformedChunk = chunk.toString().match(find_34).toString()
+            .replaceAll(',', '\n')
+        this.push(transformedChunk)
+        callback();
     }
-    if(ynum[i]) {
-        console.log(colors.yellow(ynum[i]))
-    }
-    if(rnum[i]) {
-        console.log(colors.red(rnum[i]))
-    }
-
-}
+});
 
 
-
-
-
+readStream.pipe(transformStreamFind_89).pipe(fileWs_89)
+readStream.pipe(transformStreamFind_34).pipe(fileWs_34)
